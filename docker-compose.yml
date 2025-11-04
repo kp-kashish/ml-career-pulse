@@ -3,6 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
+    container_name: ml_pulse_postgres
     environment:
       POSTGRES_DB: ml_pulse
       POSTGRES_USER: postgres
@@ -11,34 +12,38 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ml_pulse_network
 
   redis:
     image: redis:7-alpine
+    container_name: ml_pulse_redis
     ports:
       - "6379:6379"
+    networks:
+      - ml_pulse_network
 
   backend:
     build: ./backend
+    container_name: ml_pulse_backend
     volumes:
       - ./backend:/app
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/ml_pulse
-      - REDIS_URL=redis://redis:6379
+      DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/ml_pulse
+      REDIS_URL: redis://redis:6379
+      ENVIRONMENT: development
     depends_on:
       - postgres
       - redis
-
-  frontend:
-    build: ./frontend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    networks:
+      - ml_pulse_network
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 volumes:
   postgres_data:
+
+networks:
+  ml_pulse_network:
+    driver: bridge
