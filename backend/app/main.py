@@ -8,13 +8,13 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logging import log
 from app.core.database import init_database
+from app.api import test
+from app.api import test, trends, collect
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Application lifespan manager
-    """
+    """Application lifespan manager"""
     # Startup
     log.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     log.info(f"Environment: {settings.ENVIRONMENT}")
@@ -46,33 +46,32 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+app.include_router(test.router, prefix="/api/v1/test", tags=["test"])
+app.include_router(test.router, prefix="/api/v1/test", tags=["test"])
+app.include_router(trends.router, prefix="/api/v1/trends", tags=["trends"])
+app.include_router(collect.router, prefix="/api/v1/collect", tags=["data-collection"])
 
 @app.get("/")
 async def root():
-    """
-    Root endpoint
-    """
+    """Root endpoint"""
     return {
         "application": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "status": "operational",
-        "environment": settings.ENVIRONMENT,
-        "endpoints": {
-            "health": "/health",
-            "docs": "/docs" if settings.ENVIRONMENT != "production" else None,
-            "api": "/api/v1"
-        }
+        "environment": settings.ENVIRONMENT
     }
 
 
 @app.get("/health")
 async def health_check():
-    """
-    Health check endpoint
-    """
+    """Health check endpoint"""
     return {
         "status": "healthy",
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION
     }
+
+
+# Import and include API routers (we'll add this back later)
+# from app.api import scrapers
+# app.include_router(scrapers.router, prefix="/api/v1/scrapers", tags=["scrapers"])
