@@ -8,44 +8,46 @@ from app.core.database import Base
 
 
 class Paper(Base):
-    """
-    Research paper model
-    """
+    """ArXiv research paper model"""
     __tablename__ = "papers"
     
-    id = Column(String, primary_key=True, index=True)
-    title = Column(String, nullable=False)
-    abstract = Column(Text)
+    id = Column(String(50), primary_key=True, index=True)
+    title = Column(Text, nullable=False)
+    abstract = Column(Text, nullable=False)
     authors = Column(Text)
-    published_date = Column(DateTime)
-    source = Column(String, index=True)
-    url = Column(String)
-    categories = Column(JSON)
-    extracted_skills = Column(JSON)
-    citations = Column(Integer, default=0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    published_date = Column(DateTime, nullable=False)
+    source = Column(String(50), default="arxiv")
+    url = Column(Text)
+    categories = Column(JSON, default=list)
+    extracted_skills = Column(JSON, default=list)
+    detailed_skills = Column(JSON, default=dict)  # NEW FIELD
+    created_at = Column(DateTime, server_default=func.now())
+    
+    def __repr__(self):
+        return f"<Paper {self.id}: {self.title[:50]}>"
 
 
 class GitHubRepo(Base):
-    """
-    GitHub repository model
-    """
+    """GitHub repository model"""
     __tablename__ = "github_repos"
     
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    full_name = Column(String, unique=True)
+    id = Column(String(50), primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    full_name = Column(String(255), nullable=False)
     description = Column(Text)
     stars = Column(Integer, default=0)
     forks = Column(Integer, default=0)
-    watchers = Column(Integer, default=0)
-    language = Column(String, index=True)
-    topics = Column(JSON)
-    url = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-
+    language = Column(String(50))
+    topics = Column(JSON, default=list)
+    url = Column(Text, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
+    extracted_skills = Column(JSON, default=list)
+    detailed_skills = Column(JSON, default=dict)  # NEW FIELD
+    added_at = Column(DateTime, server_default=func.now())
+    
+    def __repr__(self):
+        return f"<GitHubRepo {self.full_name}: {self.stars} stars>"
 
 class JobPosting(Base):
     """

@@ -36,3 +36,6 @@ Thumbs.db
 # Environment
 .env.local
 .env.*.local
+
+echo "backend/test_*.py" >> .gitignore
+echo "backend/check_*.py" >> .gitignore

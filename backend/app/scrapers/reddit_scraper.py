@@ -69,32 +69,41 @@ class RedditScraper(BaseScraper):
     
     async def process_data(self, raw_data: List[Dict]) -> List[Dict]:
         """
-        Process raw Reddit post data
-        
-        Args:
-            raw_data: Raw post data
-            
-        Returns:
-            Processed post data
+        Process raw Reddit post data with LLM extraction
         """
+        from app.services.skill_extractor import SkillExtractor
+        
+        log.info(f"Processing {len(raw_data)} Reddit posts with LLM extraction")
+        extractor = SkillExtractor()
         processed = []
         
         for post in raw_data:
-            # Extract skills from title and content
+            # Basic keyword extraction
             text = f"{post['title']} {post.get('selftext', '')}"
-            skills = self.extract_skills(text)
+            basic_skills = self.extract_skills(text)
+            
+            # LLM-based detailed extraction
+            detailed_skills = await extractor.extract_from_discussion(
+                post['title'],
+                post.get('selftext', ''),
+                'reddit'
+            )
             
             processed.append({
                 'id': post['id'],
                 'title': post['title'],
-                'content': post.get('selftext', '')[:500],  # Truncate
+                'content': post.get('selftext', '')[:500],
                 'subreddit': post['subreddit'],
                 'score': post['score'],
                 'comments': post['num_comments'],
                 'url': post['url'],
                 'created_at': datetime.fromtimestamp(post['created_utc']).isoformat(),
-                'extracted_skills': skills,
+                'extracted_skills': basic_skills,
+                'detailed_skills': detailed_skills,
                 'engagement_score': post['score'] + (post['num_comments'] * 2)
             })
         
+        log.info(f"Processed {len(processed)} posts with detailed extraction")
         return processed
+
+
